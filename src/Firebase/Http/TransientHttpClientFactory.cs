@@ -5,13 +5,25 @@ namespace Firebase
 {
     internal sealed class TransientHttpClientFactory : IHttpClientFactory
     {
+        private HttpClient HttpClient { get; set; }
+
+        internal TransientHttpClientFactory(HttpClient client)
+        {
+            this.HttpClient = client;
+        }
+
         public IHttpClientProxy GetHttpClient(TimeSpan? timeout)
         {
-            var client = new HttpClient();
-            if (timeout != null) {
-                client.Timeout = timeout.Value;
-            }
-
+            Func<HttpClient> createOneTimeClient = () =>
+            {
+                var client = new HttpClient();
+                if(timeout != null)
+                {
+                    client.Timeout = timeout.Value;
+                }
+                return client;
+            };
+            var client = this.HttpClient ?? createOneTimeClient();
             return new SimpleHttpClientProxy(client);
         }
     }

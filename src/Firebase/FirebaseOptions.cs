@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     using Firebase.Database.Offline;
@@ -11,13 +12,13 @@
 
     public class FirebaseOptions
     {
-        public FirebaseOptions()
+        public FirebaseOptions(HttpClient httpClient = null)
         {
             this.OfflineDatabaseFactory = (t, s) => new Dictionary<string, OfflineEntry>();
             this.SubscriptionStreamReaderFactory = s => new StreamReader(s);
             this.JsonSerializerSettings = new JsonSerializerSettings();
             this.SyncPeriod = TimeSpan.FromSeconds(10);
-            this.HttpClientFactory = new TransientHttpClientFactory();
+            this.HttpClientFactory = new TransientHttpClientFactory(httpClient);
         }
 
         /// <summary>
