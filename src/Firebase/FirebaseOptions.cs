@@ -82,5 +82,7 @@
             get;
             set;
         }
+
+        public Func<Task<IEnumerable<(string name,string value)>>> CustomHeadersProvider { get; set; }
     }
 }

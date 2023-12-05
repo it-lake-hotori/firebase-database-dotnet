@@ -12,6 +12,7 @@ namespace Firebase.Database.Query
 
     using Newtonsoft.Json;
     using System.Net;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Represents a firebase query. 
@@ -62,7 +63,16 @@ namespace Firebase.Database.Query
                 throw new FirebaseException("Couldn't build the url", string.Empty, string.Empty, HttpStatusCode.OK, ex);
             }
 
-            return await this.GetClient(timeout).GetObjectDictionaryCollectionAsync<T>(url, Client.Options.JsonSerializerSettings)
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            var customHeadersProvider = Client.Options.CustomHeadersProvider;
+            if(customHeadersProvider != null)
+            {
+                foreach(var header in await customHeadersProvider())
+                {
+                    requestMessage.Headers.Add(header.name, header.value);
+                }
+            }
+            return await this.GetClient(timeout).GetObjectDictionaryCollectionAsync<T>(requestMessage, Client.Options.JsonSerializerSettings)
                 .ConfigureAwait(false);
         }
 
@@ -113,7 +123,16 @@ namespace Firebase.Database.Query
 
             try
             {
-                var response = await this.GetClient(timeout).GetAsync(url).ConfigureAwait(false);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+                var customHeadersProvider = Client.Options.CustomHeadersProvider;
+                if(customHeadersProvider != null)
+                {
+                    foreach(var header in await customHeadersProvider())
+                    {
+                        requestMessage.Headers.Add(header.name, header.value);
+                    }
+                }
+                var response = await this.GetClient(timeout).SendAsync(requestMessage).ConfigureAwait(false);
                 statusCode = response.StatusCode;
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
